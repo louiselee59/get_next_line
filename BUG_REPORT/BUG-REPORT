@@ -1,0 +1,278 @@
+
+Louse Lee
+7/12/19
+
+GET_NEXT_LINE.c  failed on 40_hard_test_medium_string.c
+
+42FileChecker (A) failed on BUFF_SIZE 400, 512, 1024, 4096.  A side effect is found.
+
+The test failed because the data from the first read is not joined.
+
+Disguard BUFF_SIZE, this test pass when the statement, a printf statement is the first statement in the function. 
+Test failed otherwise.  
+
+static void		ft_process_data_without_eol(t_fd *fd, char **line)
+{
+	// declaration ...
+
+	 printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+
+	...
+}
+
+
+This report is presented to study the side effect of printf("HERE.").
+
+
+==================================================================================================================
+
+MAIN.C    ---------------------------------------------------------------------------------------------------------
+
+#include "get_next_line.h"
+
+int main(void)
+{
+	char 	*line;
+	int		out;
+	int		p[2];
+	char 	*str;
+	int		len = 50;
+
+	str = (char *)malloc(1000 * 1000);
+	*str = '\0';
+	while (len--)
+		strcat(str, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in leo dignissim, gravida leo id, imperdiet urna. Aliquam magna nunc, maximus quis eleifend et, scelerisque non dolor. Suspendisse augue augue, tempus");
+	out = dup(1);
+	pipe(p);
+	dup2(p[1], 1);
+
+	if (str)
+		write(1, str, strlen(str));
+	close(p[1]);
+	dup2(out, 1);
+	get_next_line(p[0], &line);
+
+	// 1 - pass,  0 - fail
+	printf("%d\n", strcmp(line, str) == 0);
+}
+
+
+
+
+GET_NEXT_LINE.H   ----------------------------------------------------------------------------------------------------
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/05/09 10:38:21 by lolee             #+#    #+#             */
+/*   Updated: 2019/07/11 21:55:32 by lolee            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/*
+** failed on BUFF_SIZE 400, 512, 1024, 4096
+*/
+
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include "./libft/libft.h"
+# define BUFF_SIZE	 4096
+# define DEBUG
+
+typedef struct			s_fd
+{
+	int					fd;
+	int					completed;
+	int					idx;
+	char				*buffer;
+	int					len;
+	struct s_fd			*next;
+}						t_fd;
+
+int						ft_read_dsk(t_fd *fd);
+int						ft_read_buf(t_fd *fd, char **line);
+int						get_next_line(const int fd, char **line);
+
+#endif
+
+
+
+
+
+GET_NEXT_LINE.C     .................................................................................
+
+
+
+e1z4r6p29% cat get_next_line.c
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/05/09 09:50:59 by lolee             #+#    #+#             */
+/*   Updated: 2019/07/11 21:02:47 by lolee            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line.h"
+
+static void		ft_process_data_without_eol(t_fd *fd, char **line)
+{
+	char	*line2;
+	int		ret;
+	char	*tmp;
+
+//printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+//printf("HERE");   ///////////////////////////////////////////////////////////////////////////////////////////
+	ret = -20;
+	*line = ft_strsub(fd->buffer, fd->idx, fd->len);
+	fd->idx += fd->len;
+	fd->len = 0;
+	if (!fd->completed)
+	{
+		line2 = NULL;
+		ret = ft_read_buf(fd, &line2);
+//printf("3.  return from recursion,  ret = %d, ft->completed = %d, *line = \n %s\n", ret, fd->completed,  *line);
+		if (ret == 1)
+		{
+			tmp = ft_strjoin(*line, line2);
+//printf("4.  after join,  *line = \n %s\n, line2 = %s\n, tmp= %s\n\n",  *line, line2, tmp);
+			free(*line);
+			free(line2);
+			*line = tmp;
+		}
+	}
+//printf("5.  EXIT, ret = %d, ft->completed = %d, *line = \n %s\n\n", ret, fd->completed,  *line);
+
+}
+
+static void		ft_process_data_with_eol(t_fd *fd, char **line, char *eol)
+{
+	int		length_of_line;
+
+	length_of_line = eol - &fd->buffer[fd->idx];
+	if (length_of_line)
+	{
+		*line = ft_strsub(fd->buffer, fd->idx, length_of_line);
+		fd->idx += length_of_line + 1;
+		fd->len -= (length_of_line + 1);
+
+//printf("6.  process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
+	}
+	else
+	{
+		*line = ft_strnew(0);
+		fd->idx += 1;
+		fd->len -= 1;
+//printf("7.  process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
+	}
+//printf("8.  ******* process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
+
+}
+
+/*
+**	return a line (EOF or '\n')
+**	return 1 for empty string,  ex. ....\n\n..
+**	return status codes :   1, 0 or -1.  (return bytes read)
+*/
+
+int				ft_read_buf(t_fd *fd, char **line)
+{
+	char	*eol;
+	int		ret;
+
+	if (fd->len == 0 && fd->completed)
+		return (0);
+	if (!fd->buffer)
+		ret = ft_read_dsk(fd);
+	if (fd->len == 0 && !fd->completed)
+		ret = ft_read_dsk(fd);
+	if (fd->len > 0)
+	{
+		eol = ft_strchr(&fd->buffer[fd->idx], '\n');
+		if (eol)
+			ft_process_data_with_eol(fd, line, eol);
+		else
+			ft_process_data_without_eol(fd, line);
+		return (1);
+	}
+//printf("1. read_buf return : len = %d, *line = \n %s\n", fd->len, *line);
+
+	return (ret);
+}
+
+/*
+**  clear buffer,
+**  read BUFF_SIZE or EOL, EOF, error
+**  update fd->len  -  bytes read
+**  set fd->offsetf = 0
+**  set fd->completed = 1 if EOF
+**  return ret from read(....)
+**	 0   - reached EOF
+**  -1   - error
+**   >0  - bytes read
+*/
+
+int				ft_read_dsk(t_fd *fd)
+{
+	int		ret;
+
+	ret = 0;
+	if (!fd->buffer)
+		fd->buffer = (char *)ft_memalloc(BUFF_SIZE);
+	else
+		fd->buffer = (char *)ft_memset(fd->buffer, 0, BUFF_SIZE + 1);
+	while (fd->len < BUFF_SIZE && (ret = \
+				read(fd->fd, fd->buffer + fd->len, BUFF_SIZE)) > 0)
+		fd->len += ret;
+	fd->idx = 0;
+	if (ret == 0)
+		fd->completed = 1;
+	return (ret);
+}
+
+/*
+**  use a static list of t_fd to maintain file descriptors..
+**	if t_fd of fd does not exist, it would be created and
+**	added to the end of the list.
+**  return 1 and null if a 0 size string is read.
+**	ex. read between 2 newlines -> \n\n
+*/
+
+int				get_next_line(const int fd, char **line)
+{
+	static t_fd		*fds;
+	t_fd			*current_fd;
+	int				ret;
+
+	if (fd < 0 || !line)
+		return (-1);
+	if (fds)
+	{
+		current_fd = fds;
+		while (current_fd->fd != fd && current_fd->next)
+			current_fd = current_fd->next;
+		if (current_fd->fd != fd)
+		{
+			current_fd->next = (t_fd *)ft_memalloc(sizeof(t_fd));
+			current_fd = current_fd->next;
+		}
+	}
+	else
+	{
+		fds = (t_fd *)ft_memalloc(sizeof(t_fd));
+		current_fd = fds;
+	}
+	current_fd->fd = fd;
+	ret = ft_read_buf(current_fd, line);
+//printf("9.  get_next_line,  return :   *line = \n %s\n", *line);
+	return (ret);
+}
+e1z4r6p29%
+
