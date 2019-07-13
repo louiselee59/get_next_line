@@ -2,26 +2,41 @@
 Louse Lee
 7/12/19
 
-GET_NEXT_LINE.c  failed on 40_hard_test_medium_string.c
+PROBLEM:
 
-42FileChecker (A) failed on BUFF_SIZE 400, 512, 1024, 4096.  A side effect is found.
+	GET_NEXT_LINE.c  failed on 40_hard_test_medium_string.c
 
-The test failed because the data from the first read is not joined.
+	42FileChecker (A) failed on BUFF_SIZE 400, 512, 1024, 4096.  A side effect is found.
 
-Disguard BUFF_SIZE, this test pass when the statement, a printf statement is the first statement in the function. 
-Test failed otherwise.  
+	The test failed because the data from the first read is not joined.
 
-static void		ft_process_data_without_eol(t_fd *fd, char **line)
-{
-	// declaration ...
+	Disguard BUFF_SIZE, this test pass when the statement, a printf statement is the first statement in the function. 
+	Test failed otherwise.  
 
-	 printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+	static void		ft_process_data_without_eol(t_fd *fd, char **line)
+	{
+		// declaration ...
 
-	...
-}
+		 printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+
+		...
+	}
+
+	This report is presented to study the side effect of printf("HERE.").
 
 
-This report is presented to study the side effect of printf("HERE.").
+OBSERVATION:
+
+	Used gcc -fsanitize=address to check if there is invalid access in memory.
+	Used valgrind to identify the statement of memory leak.
+	ft_strncpy used ft_strlen which processes '\0' terminated strings. Since fd->buffer is not '\0' terminated,
+	invalid bytes were read. 
+
+
+SOLUTION:
+
+	Added '\0' at the end of the fd->buffer to make bytes read a '\0' terminated string.
+
 
 
 ==================================================================================================================
