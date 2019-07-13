@@ -6,6 +6,7 @@
 /*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 10:38:21 by lolee             #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2019/07/12 20:00:19 by lolee            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -25,6 +26,16 @@
 # define GET_NEXT_LINE_H
 # include "./libft/libft.h"
 # define BUFF_SIZE	1024 
+=======
+/*   Updated: 2019/07/03 19:46:47 by lolee            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include "./libft/libft.h"
+# define BUFF_SIZE	10
+>>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 # define DEBUG
 
 typedef struct			s_fd

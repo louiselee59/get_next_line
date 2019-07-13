@@ -1,3 +1,113 @@
+
+Louse Lee
+7/12/19
+
+GET_NEXT_LINE.c  failed on 40_hard_test_medium_string.c
+
+42FileChecker (A) failed on BUFF_SIZE 400, 512, 1024, 4096.  A side effect is found.
+
+The test failed because the data from the first read is not joined.
+
+Disguard BUFF_SIZE, this test pass when the statement, a printf statement is the first statement in the function. 
+Test failed otherwise.  
+
+static void		ft_process_data_without_eol(t_fd *fd, char **line)
+{
+	// declaration ...
+
+	 printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+
+	...
+}
+
+
+This report is presented to study the side effect of printf("HERE.").
+
+
+==================================================================================================================
+
+MAIN.C    ---------------------------------------------------------------------------------------------------------
+
+#include "get_next_line.h"
+
+int main(void)
+{
+	char 	*line;
+	int		out;
+	int		p[2];
+	char 	*str;
+	int		len = 50;
+
+	str = (char *)malloc(1000 * 1000);
+	*str = '\0';
+	while (len--)
+		strcat(str, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in leo dignissim, gravida leo id, imperdiet urna. Aliquam magna nunc, maximus quis eleifend et, scelerisque non dolor. Suspendisse augue augue, tempus");
+	out = dup(1);
+	pipe(p);
+	dup2(p[1], 1);
+
+	if (str)
+		write(1, str, strlen(str));
+	close(p[1]);
+	dup2(out, 1);
+	get_next_line(p[0], &line);
+
+	// 1 - pass,  0 - fail
+	printf("%d\n", strcmp(line, str) == 0);
+}
+
+
+
+
+GET_NEXT_LINE.H   ----------------------------------------------------------------------------------------------------
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/05/09 10:38:21 by lolee             #+#    #+#             */
+/*   Updated: 2019/07/11 21:55:32 by lolee            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/*
+** failed on BUFF_SIZE 400, 512, 1024, 4096
+*/
+
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include "./libft/libft.h"
+# define BUFF_SIZE	 4096
+# define DEBUG
+
+typedef struct			s_fd
+{
+	int					fd;
+	int					completed;
+	int					idx;
+	char				*buffer;
+	int					len;
+	struct s_fd			*next;
+}						t_fd;
+
+int						ft_read_dsk(t_fd *fd);
+int						ft_read_buf(t_fd *fd, char **line);
+int						get_next_line(const int fd, char **line);
+
+#endif
+
+
+
+
+
+GET_NEXT_LINE.C     .................................................................................
+
+
+
+e1z4r6p29% cat get_next_line.c
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -6,69 +116,43 @@
 /*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 09:50:59 by lolee             #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2019/07/12 19:44:10 by lolee            ###   ########.fr       */
-=======
-/*   Updated: 2019/07/03 15:09:13 by lolee            ###   ########.fr       */
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
+/*   Updated: 2019/07/11 21:02:47 by lolee            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-<<<<<<< HEAD
 static void		ft_process_data_without_eol(t_fd *fd, char **line)
-=======
-static void		ft_setup_a_line_without_eol(t_fd *fd, char **line)
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 {
 	char	*line2;
 	int		ret;
 	char	*tmp;
 
-<<<<<<< HEAD
-//printf("2. ENTER, ft->completed = %d\n", fd->completed);
-//printf("HERE");
+//printf("2. ENTER, ft->completed = %d\n", fd->completed);/////////////////////////////////////////////////////
+//printf("HERE");   ///////////////////////////////////////////////////////////////////////////////////////////
 	ret = -20;
 	*line = ft_strsub(fd->buffer, fd->idx, fd->len);
 	fd->idx += fd->len;
 	fd->len = 0;
-=======
-	*line = ft_strsub(fd->buffer, fd->idx, fd->len);
-	fd->len = 0;
-	fd->idx += fd->len;
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 	if (!fd->completed)
 	{
 		line2 = NULL;
 		ret = ft_read_buf(fd, &line2);
-<<<<<<< HEAD
 //printf("3.  return from recursion,  ret = %d, ft->completed = %d, *line = \n %s\n", ret, fd->completed,  *line);
 		if (ret == 1)
 		{
 			tmp = ft_strjoin(*line, line2);
 //printf("4.  after join,  *line = \n %s\n, line2 = %s\n, tmp= %s\n\n",  *line, line2, tmp);
-=======
-		if (ret == 1)
-		{
-			tmp = ft_strjoin(*line, line2);
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 			free(*line);
 			free(line2);
 			*line = tmp;
 		}
 	}
-<<<<<<< HEAD
 //printf("5.  EXIT, ret = %d, ft->completed = %d, *line = \n %s\n\n", ret, fd->completed,  *line);
 
 }
 
 static void		ft_process_data_with_eol(t_fd *fd, char **line, char *eol)
-=======
-}
-
-static void		ft_setup_a_line_with_eol(t_fd *fd, char **line, char *eol)
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 {
 	int		length_of_line;
 
@@ -78,25 +162,18 @@ static void		ft_setup_a_line_with_eol(t_fd *fd, char **line, char *eol)
 		*line = ft_strsub(fd->buffer, fd->idx, length_of_line);
 		fd->idx += length_of_line + 1;
 		fd->len -= (length_of_line + 1);
-<<<<<<< HEAD
 
 //printf("6.  process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
-=======
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 	}
 	else
 	{
 		*line = ft_strnew(0);
 		fd->idx += 1;
 		fd->len -= 1;
-<<<<<<< HEAD
 //printf("7.  process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
 	}
 //printf("8.  ******* process data with EOL, length_of_line = %d, fd->completed = %d, fd->idx = %d, fd->len = %d, *line = %s\n", length_of_line, fd->completed, fd->idx, fd->len, *line);
-	
-=======
-	}
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
+
 }
 
 /*
@@ -120,7 +197,6 @@ int				ft_read_buf(t_fd *fd, char **line)
 	{
 		eol = ft_strchr(&fd->buffer[fd->idx], '\n');
 		if (eol)
-<<<<<<< HEAD
 			ft_process_data_with_eol(fd, line, eol);
 		else
 			ft_process_data_without_eol(fd, line);
@@ -128,13 +204,6 @@ int				ft_read_buf(t_fd *fd, char **line)
 	}
 //printf("1. read_buf return : len = %d, *line = \n %s\n", fd->len, *line);
 
-=======
-			ft_setup_a_line_with_eol(fd, line, eol);
-		else
-			ft_setup_a_line_without_eol(fd, line);
-		return (1);
-	}
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 	return (ret);
 }
 
@@ -156,11 +225,7 @@ int				ft_read_dsk(t_fd *fd)
 
 	ret = 0;
 	if (!fd->buffer)
-<<<<<<< HEAD
-		fd->buffer = (char *)ft_memalloc(BUFF_SIZE + 1);
-=======
 		fd->buffer = (char *)ft_memalloc(BUFF_SIZE);
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 	else
 		fd->buffer = (char *)ft_memset(fd->buffer, 0, BUFF_SIZE + 1);
 	while (fd->len < BUFF_SIZE && (ret = \
@@ -206,9 +271,8 @@ int				get_next_line(const int fd, char **line)
 	}
 	current_fd->fd = fd;
 	ret = ft_read_buf(current_fd, line);
-<<<<<<< HEAD
 //printf("9.  get_next_line,  return :   *line = \n %s\n", *line);
-=======
->>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 	return (ret);
 }
+e1z4r6p29%
+

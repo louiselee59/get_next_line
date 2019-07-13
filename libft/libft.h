@@ -6,19 +6,32 @@
 /*   By: lolee <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/29 20:32:28 by lolee             #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2019/07/10 20:58:30 by lolee            ###   ########.fr       */
+=======
+/*   Updated: 2019/07/03 15:20:46 by lolee            ###   ########.fr       */
+>>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LIBFT_H
 # define LIBFT_H
 
+<<<<<<< HEAD
 # include <ctype.h>
 # include <limits.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <unistd.h>
+=======
+# include <stdlib.h>
+# include <stdio.h>
+# include <unistd.h>
+# include <string.h>
+# include <ctype.h>
+# include <limits.h>
+>>>>>>> a6c7f2b4bdfbc8dbfa26142d48c631d98baa1a05
 
 # define INT_SIZE	12
 # define DIGIT_CUNT	10
